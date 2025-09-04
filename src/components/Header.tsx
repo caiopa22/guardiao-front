@@ -1,12 +1,21 @@
-import { CogIcon, DoorOpenIcon, ServerCog } from "lucide-react";
+import { CogIcon, DoorOpenIcon, MoonIcon, ServerCog, SunIcon } from "lucide-react";
 import { Button } from "./ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Separator } from "./ui/separator";
+import { replace, useNavigate } from "react-router";
+import { useTheme } from "../context/useTheme";
 
 export default function Header() {
+
+    const navigate = useNavigate();
+
+    const { theme, toggleTheme } = useTheme();
+
     return (
         <section className="w-screen bg-sidebar px-48 py-6 flex justify-between items-center">
-            <strong className="font-bold text-2xl bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
+            <strong
+                onClick={() => navigate("/vault")}
+                className="font-bold text-2xl bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent cursor-pointer">
                 Guardião
             </strong>
 
@@ -25,6 +34,13 @@ export default function Header() {
 
                 <Button size="icon" variant="ghost">
                     <ServerCog className="size-5 text-foreground" />
+                </Button>
+
+                <Button
+                    onClick={() => toggleTheme()}
+                    size="icon"
+                    variant="ghost">
+                    {theme === 'dark' ? <MoonIcon className="size-5 text-foreground" /> : <SunIcon className="size-5 text-foreground" />}
                 </Button>
 
                 <Button variant="ghost" className="flex items-center gap-1 text-destructive">
