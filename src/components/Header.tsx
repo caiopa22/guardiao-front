@@ -4,12 +4,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Separator } from "./ui/separator";
 import { replace, useNavigate } from "react-router";
 import { useTheme } from "../context/useTheme";
+import { useAuth } from "@/context/useAuth";
+import { toast } from "sonner";
 
 export default function Header() {
 
     const navigate = useNavigate();
 
     const { theme, toggleTheme } = useTheme();
+    const { logout } = useAuth();
 
     return (
         <section className="w-screen bg-sidebar px-48 py-6 flex justify-between items-center">
@@ -28,7 +31,16 @@ export default function Header() {
                     <AvatarFallback>ER</AvatarFallback>
                 </Avatar>
                 <Separator orientation="vertical" />
-                <Button size="icon" variant="ghost">
+                <Button
+                    onClick={() =>
+                        toast("Event has been created", {
+                            description: "Sunday, December 03, 2023 at 9:00 AM",
+                            action: {
+                                label: "Undo",
+                                onClick: () => console.log("Undo"),
+                            },
+                        })}
+                size="icon" variant="ghost">
                     <CogIcon className="size-5 text-foreground" />
                 </Button>
 
@@ -43,7 +55,9 @@ export default function Header() {
                     {theme === 'dark' ? <MoonIcon className="size-5 text-foreground" /> : <SunIcon className="size-5 text-foreground" />}
                 </Button>
 
-                <Button variant="ghost" className="flex items-center gap-1 text-destructive">
+                <Button
+                    onClick={() => { logout(); navigate("/") }}
+                    variant="ghost" className="flex items-center gap-1 text-destructive">
                     <DoorOpenIcon className="size-5" />
                     <p className="text-sm">Sair</p>
                 </Button>
