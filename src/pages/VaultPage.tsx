@@ -16,12 +16,16 @@ import { Input } from "../components/ui/input"
 import { Label } from "../components/ui/label"
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
+import { useAuth } from "@/hooks/useAuth";
+import { useUser } from "@/hooks/useUser";
 
 
 
 export function DialogDemo({ children }: { children: React.ReactNode }) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [open, setOpen] = useState(false)
+
+  const { isAuthenticated } = useAuth();
 
   const navigate = useNavigate();
 
@@ -59,6 +63,12 @@ export function DialogDemo({ children }: { children: React.ReactNode }) {
     }
   }, [open])
 
+  useEffect(() => {
+      if (isAuthenticated !== null && !isAuthenticated){
+        navigate("/")
+      }
+  }, [isAuthenticated])
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
@@ -94,13 +104,16 @@ export function DialogDemo({ children }: { children: React.ReactNode }) {
 }
 
 export default function VaultPage() {
+
+  const { user } = useUser();
+
   return (
     <div className="flex flex-col min-h-screen items-start  bg-secondary">
       <Header />
       <section className="px-48 py-6 flex flex-col gap-12 w-full h-full">
         <div className="flex mt-12 justify-between items-center w-full">
           <div>
-            <h1 className="text-2xl font-semibold  text-foreground">Olá, Caio Andrade!</h1>
+            <h1 className="text-2xl font-semibold  text-foreground">Olá, {user?.name}!</h1>
             <h1 className="text-xl  text-muted-foreground">Seja bem vindo ao seu cofre seguro.</h1>
           </div>
           <ShieldCheckIcon color="oklch(0.546 0.245 262.881)" size={48} />

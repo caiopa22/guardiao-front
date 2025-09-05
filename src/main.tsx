@@ -2,16 +2,19 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import "./index.css"
 import App from './App.tsx'
-import { ThemeProvider } from './context/useTheme.tsx'
-import { AuthProvider } from './context/useAuth.tsx'
+import { ThemeProvider } from './context/themeContext.tsx'
+import { AuthProvider } from './context/authContext.tsx'
 import { Toaster } from 'sonner'
+import { UserProvider } from './context/userContext.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <AuthProvider>
-      <ThemeProvider>
-        <App />
-      </ThemeProvider>
-    </AuthProvider>
+    <UserProvider>
+      <AuthProvider>
+        <ThemeProvider>
+          <App />
+        </ThemeProvider>
+      </AuthProvider>
+    </UserProvider>
   </StrictMode>,
 )

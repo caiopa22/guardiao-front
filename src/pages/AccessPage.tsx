@@ -7,10 +7,10 @@ import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Toggle } from '@/components/ui/toggle';
 import { BoldIcon, MoonIcon, SunIcon } from 'lucide-react';
-import { useTheme } from '@/context/useTheme';
-import { useAuth } from '@/context/useAuth';
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
+import { useTheme } from '@/hooks/useTheme';
 
 export default function AccessPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -30,8 +30,8 @@ export default function AccessPage() {
 
   const { login, isAuthenticated } = useAuth();
 
-  function handleSubmit() {
-    // Handle form submission logic here
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
     if (isLogin) {
       login(loginData.email, loginData.password);
       return
@@ -45,12 +45,6 @@ export default function AccessPage() {
       navigate('/vault');
     }
   }, [isAuthenticated])
-
-
-  useEffect(() => {
-    console.log(registerData);
-    
-  }, [registerData])
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-secondary">
@@ -68,56 +62,57 @@ export default function AccessPage() {
             {isLogin ? "Login" : "Registro"}
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {!isLogin && (
+        <CardContent>
+          <form className="space-y-4" onSubmit={handleSubmit}>
+            {!isLogin && (
+              <div className="flex flex-col gap-1">
+                <Label className='ml-2' htmlFor="name">Nome</Label>
+                <Input id="name" placeholder="Seu nome"
+                  value={registerData.name}
+                  onChange={(e) => setRegisterData({ ...registerData, name: e.target.value })}
+                />
+              </div>
+            )}
             <div className="flex flex-col gap-1">
-              <Label className='ml-2' htmlFor="name">Nome</Label>
-              <Input id="name" placeholder="Seu nome"
-                value={registerData.name}
-                onChange={(e) => setRegisterData({ ...registerData, name: e.target.value })}
+              <Label className='ml-2' htmlFor="email">Email</Label>
+              <Input
+                id="email" placeholder="exemplo@gmail.com"
+                value={isLogin ? loginData.email : undefined}
+                onChange={(e) => isLogin ? setLoginData({ ...loginData, email: e.target.value }) : setRegisterData({ ...registerData, email: e.target.value })}
               />
             </div>
-          )}
-          <div className="flex flex-col gap-1">
-            <Label className='ml-2' htmlFor="email">Email</Label>
-            <Input
-              id="email" placeholder="exemplo@gmail.com"
-              value={isLogin ? loginData.email : undefined}
-              onChange={(e) => isLogin ? setLoginData({ ...loginData, email: e.target.value }) : setRegisterData({ ...registerData, email: e.target.value })}
-            />
-          </div>
-          <div className="flex flex-col gap-1">
-            <Label className='ml-2' htmlFor="password">Senha</Label>
-            <Input
-              id="password"
-              type='password'
-              placeholder='Digite sua senha'
-              value={isLogin ? loginData.password : undefined}
-              onChange={(e) => isLogin ? setLoginData({ ...loginData, password: e.target.value }) : setRegisterData({ ...registerData, password: e.target.value })}
-            />
-          </div>
-          {!isLogin && (
             <div className="flex flex-col gap-1">
-              <Label className='ml-2' htmlFor="name">Confirmar senha</Label>
-              <Input id="password2" placeholder="Confirme sua senha"
-                value={registerData.password2}
+              <Label className='ml-2' htmlFor="password">Senha</Label>
+              <Input
+                id="password"
                 type='password'
-                onChange={(e) => setRegisterData({ ...registerData, password2: e.target.value })}
+                placeholder='Digite sua senha'
+                value={isLogin ? loginData.password : registerData.password}
+                onChange={(e) => isLogin ? setLoginData({ ...loginData, password: e.target.value }) : setRegisterData({ ...registerData, password: e.target.value })}
               />
             </div>
-          )}
-          <Button
-            onClick={handleSubmit}
-            size='lg' className="w-full mt-6 text-white">
-            {isLogin ? "Entrar" : "Registrar"}
-          </Button>
-          <Button
-            variant="link"
-            className="w-full mt-2 text-sm text-gray-500"
-            onClick={handleToggle}
-          >
-            {isLogin ? "Não tem uma conta? Registre-se" : "Já tem uma conta? Login"}
-          </Button>
+            {!isLogin && (
+              <div className="flex flex-col gap-1">
+                <Label className='ml-2' htmlFor="name">Confirmar senha</Label>
+                <Input id="password2" placeholder="Confirme sua senha"
+                  value={registerData.password2}
+                  type='password'
+                  onChange={(e) => setRegisterData({ ...registerData, password2: e.target.value })}
+                />
+              </div>
+            )}
+            <Button
+              size='lg' className="w-full mt-6 text-white">
+              {isLogin ? "Entrar" : "Registrar"}
+            </Button>
+            <Button
+              variant="link"
+              className="w-full mt-2 text-sm text-gray-500"
+              onClick={handleToggle}
+            >
+              {isLogin ? "Não tem uma conta? Registre-se" : "Já tem uma conta? Login"}
+            </Button>
+          </form>
         </CardContent>
       </Card>
     </div>

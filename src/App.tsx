@@ -3,9 +3,9 @@ import AccessPage from './pages/AccessPage';
 import "./index.css"
 import VaultPage from './pages/VaultPage';
 import SecretsPage from './pages/SecretsPage';
-import { useTheme } from './context/useTheme';
 import LandingPage from './pages/LandingPage';
 import { Toaster } from 'sonner';
+import { useTheme } from './hooks/useTheme';
 
 // Componente principal que define as rotas
 export default function App() {

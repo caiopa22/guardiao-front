@@ -3,9 +3,9 @@ import { Button } from "./ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Separator } from "./ui/separator";
 import { replace, useNavigate } from "react-router";
-import { useTheme } from "../context/useTheme";
-import { useAuth } from "@/context/useAuth";
 import { toast } from "sonner";
+import { useTheme } from "@/hooks/useTheme";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Header() {
 
