@@ -14,7 +14,7 @@ export default function App() {
 
   return (
     <div className={`${theme}`}>
-      <Toaster />
+      <Toaster className={`${theme}`}/>
       <BrowserRouter>
         <Routes>
           <Route

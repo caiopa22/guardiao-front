@@ -41,9 +41,11 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             );
 
             if (response.status === 200) {
+                console.log(response.data);
+                const id = response.data.secret_id
                 setUser((prevUser: any) => ({
                     ...prevUser,
-                    secrets: [...(prevUser?.secrets || []), { title, secret }],
+                    secrets: [...(prevUser?.secrets || []), {_id: id, title , secret }],
                 }));
                 toast.success("Segredo criado com sucesso!");
                 return true;
