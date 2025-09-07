@@ -26,7 +26,7 @@ import {
 } from "../components/ui/dialog"
 import type React from "react";
 import { useUser } from "@/hooks/useUser";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 
@@ -62,24 +62,41 @@ const UserMenu = ({ children }: { children: React.ReactNode }) => {
 
 const EditProfileDialog = ({ children }: { children: React.ReactNode }) => {
     const [open, setOpen] = useState(false);
-    const { user, createSecret } = useUser();
-    const [values, setValues] = useState<{ name: string, img: string, email: string }>({ name: user!.name, img: '', email: user!.email });
+    const { user, alterProfileData } = useUser();
+    const [values, setValues] = useState<{ name: string, img: string, email: string }>({ name: user!.name, img: user!.img, email: user!.email });
     const { theme } = useTheme();
 
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const handleCreate = async () => {
-        if (!values.secret || !values.title) return;
+    const handleEdit = async () => {
+        if (!values.name || !user?._id) return;
 
-        const ok: boolean = await createSecret(values.title, values.secret);
+        const ok: boolean = await alterProfileData(user!._id, values.name, values.img);
         if (ok) {
             setOpen(false);
-            setValues({ title: "", secret: "" });
+            setValues({ name: user!.name, img: '', email: user!.email });
         }
     };
 
+    const handleImageClick = () => {
+        fileInputRef.current?.click(); // abre o seletor de arquivos
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setValues(prev => ({ ...prev, img: reader.result as string }));
+            };
+            reader.readAsDataURL(file); // converte a imagem para base64
+        }
+    };
+
+    let isUnchanged = values.name === user?.name && values.img === '';
 
     return (
-        <Dialog>
+        <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger className="w-full">{children}</DialogTrigger>
             <DialogContent className={`${theme}`}>
                 <DialogHeader>
@@ -91,17 +108,26 @@ const EditProfileDialog = ({ children }: { children: React.ReactNode }) => {
                 <div className="flex flex-col gap-6">
                     <div className="flex w-full justify-between items-center">
                         <Label className="ml-2 text-foreground">Imagem de perfil</Label>
-                        <Avatar className="cursor-pointer size-12">
+                        <Avatar className="cursor-pointer size-12" onClick={handleImageClick}>
                             <AvatarImage
-                                src="https://github.com/evilrabbit.png"
+                                src={values.img || "https://github.com/evilrabbit.png"}
                                 alt="@evilrabbit"
                             />
                             <AvatarFallback>ER</AvatarFallback>
                         </Avatar>
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            style={{ display: 'none' }}
+                            accept="image/*"
+                            onChange={handleFileChange}
+                        />
                     </div>
                     <div className="grid w-full items-center gap-2">
                         <Label className="ml-2 text-foreground">Nome</Label>
-                        <Input id="name" placeholder="Nome de usuário"
+                        <Input
+                            id="name"
+                            placeholder="Nome de usuário"
                             value={values.name}
                             onChange={(e) => setValues({ ...values, name: e.target.value })}
                         />
@@ -109,13 +135,14 @@ const EditProfileDialog = ({ children }: { children: React.ReactNode }) => {
                     <Separator />
                     <div className="grid w-full items-center gap-4">
                         <Label className="ml-2 text-foreground">Email</Label>
-                        <Label className="ml-2 text-muted-foreground font-normal">{user?.email && user.email}</Label>
+                        <Label className="ml-2 text-muted-foreground font-normal">{user?.email}</Label>
                     </div>
                 </div>
                 <DialogFooter>
                     <Button
-                        variant={values.name !== user!.name ? 'success' : 'disabled'}
-                        disabled={values.name === user!.name}
+                        onClick={handleEdit}
+                        variant={isUnchanged ? "secondary" : "success"}
+                        disabled={isUnchanged}
                     >
                         Salvar alterações
                     </Button>
@@ -123,7 +150,7 @@ const EditProfileDialog = ({ children }: { children: React.ReactNode }) => {
             </DialogContent>
         </Dialog>
     );
-}
+};
 
 export default function Header() {
 
@@ -152,7 +179,7 @@ export default function Header() {
                     <div className="flex items-center justify-center gap-2 hover:bg-input p-2 rounded-lg cursor-pointer transition">
                         <Avatar className="cursor-pointer">
                             <AvatarImage
-                                src="https://github.com/evilrabbit.png"
+                                src={user?.img || "https://github.com/evilrabbit.png"}
                                 alt="@evilrabbit"
                             />
                             <AvatarFallback>ER</AvatarFallback>

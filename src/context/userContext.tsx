@@ -1,4 +1,4 @@
-import React, { createContext, useState, type ReactNode } from "react";
+import React, { createContext, useEffect, useState, type ReactNode } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import type { User } from "@/types/user";
@@ -9,7 +9,7 @@ interface UserContextType {
     createSecret: (title: string, secret: string) => Promise<boolean>;
     alterSecret: (_id: string, title: string, secret: string) => Promise<boolean>;
     deleteSecret: (_id: string) => Promise<boolean>;
-
+    alterProfileData: (id: string, name: string, img: string) => Promise<boolean>;
 }
 
 export const UserContext = createContext<UserContextType | undefined>(
@@ -45,7 +45,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
                 const id = response.data.secret_id
                 setUser((prevUser: any) => ({
                     ...prevUser,
-                    secrets: [...(prevUser?.secrets || []), {_id: id, title , secret }],
+                    secrets: [...(prevUser?.secrets || []), { _id: id, title, secret }],
                 }));
                 toast.success("Segredo criado com sucesso!");
                 return true;
@@ -116,8 +116,32 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         }
     }
 
+    async function alterProfileData(_id: string, name: string, img: string): Promise<boolean> {
+        if (!name && !img) { toast.error("Dados inválidos"); return false  }
+
+        const data = {
+            name: name || '',
+            img: img || ''
+        }
+
+        const header = getHeaderConfig();
+        const response = await axios.put(`${API_BASE_URL}/user/${_id}`, data, header);
+        if (response.status === 200) {
+            setUser(response.data)
+            toast.success("Dados atualizados com sucesso")
+            return true
+        }
+        console.log(response)
+        toast.error("Ocorreu um erro ao editar o perfil.")
+        return false
+    }
+
+    useEffect(() => {
+        console.log(user);
+    }, [user]);
+
     return (
-        <UserContext.Provider value={{ user, setUser, createSecret, alterSecret, deleteSecret }}>
+        <UserContext.Provider value={{ user, setUser, createSecret, alterSecret, deleteSecret, alterProfileData }}>
             {children}
         </UserContext.Provider>
     );
