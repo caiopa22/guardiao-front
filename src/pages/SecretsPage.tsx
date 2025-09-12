@@ -220,7 +220,7 @@ export default function SecretsPage() {
                     </OpenCreateSecretDialog>
                 </div>
                 <div className="flex flex-col gap-2">
-                    {user?.secrets.map((secret) => (
+                    {user?.secrets && user!.secrets.map((secret) => (
                         <div className="flex items-center gap-4 w-full">
                             <OpenSecretDialog key={secret.title} id={secret._id} title={secret.title} secret={secret.secret}>
                                 {secretCard(secret.title)}

@@ -3,13 +3,16 @@ import axios from "axios";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { useUser } from "@/hooks/useUser";
+import type { RegisterData } from "@/types/auth";
 
 interface AuthContextType {
     API_BASE_URL: string;
     isAuthenticated: boolean | null;
     setIsAuthenticated: (value: boolean) => void;
     login: (email: string, password: string) => Promise<void>;
+    register: (data: RegisterData) => Promise<boolean>;
     logout: () => void;
+    verifyFace: (img: string) => Promise<boolean>;
     getHeaderConfig: () => { headers: { Authorization: string | null } };
 }
 
@@ -29,11 +32,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         };
     };
 
-    const { setUser } = useUser();
+    const { setUser, fetchUserData } = useUser();
 
 
 
-    const [isAuthenticated, setIsAuthenticated] = useState<boolean| null>(null);
+    const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+
+    async function register(data: RegisterData): Promise<boolean> {
+        if (!data) { toast.error("Preencha os campos obrigatórios"); return false }
+        const header = getHeaderConfig();
+        const response = await axios.post(`${API_BASE_URL}/user`, data, header);
+        if (response.status === 200) {
+            localStorage.setItem("access", response.data.token)
+            setIsAuthenticated(true);
+            fetchUserData()
+            return true
+        }
+        return false
+    }
 
     async function login(email: string, password: string) {
         try {
@@ -61,6 +77,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setIsAuthenticated(false);
     }
 
+    async function verifyFace(img: string): Promise<boolean>{
+        const config = getHeaderConfig();
+        const response = await axios.post(`${API_BASE_URL}/auth/verify`, {unknownB64: img}, config);
+        return response.data
+    }
+
     useEffect(() => {
         const refreshAccessToken = async () => {
             try {
@@ -82,7 +104,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 
     return (
-        <AuthContext.Provider value={{ isAuthenticated, setIsAuthenticated, login, logout, API_BASE_URL, getHeaderConfig }}>
+        <AuthContext.Provider value={{ isAuthenticated, setIsAuthenticated, login, register, logout,
+         API_BASE_URL, getHeaderConfig,
+        verifyFace
+         }}>
             {children}
         </AuthContext.Provider>
     )

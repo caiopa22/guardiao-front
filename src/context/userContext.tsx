@@ -10,6 +10,7 @@ interface UserContextType {
     alterSecret: (_id: string, title: string, secret: string) => Promise<boolean>;
     deleteSecret: (_id: string) => Promise<boolean>;
     alterProfileData: (id: string, name: string, img: string) => Promise<boolean>;
+    fetchUserData: () => void;
 }
 
 export const UserContext = createContext<UserContextType | undefined>(
@@ -41,12 +42,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             );
 
             if (response.status === 200) {
-                console.log(response.data);
-                const id = response.data.secret_id
-                setUser((prevUser: any) => ({
-                    ...prevUser,
-                    secrets: [...(prevUser?.secrets || []), { _id: id, title, secret }],
-                }));
+                fetchUserData();
                 toast.success("Segredo criado com sucesso!");
                 return true;
             }
@@ -71,12 +67,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             );
 
             if (response.status === 200) {
-                setUser((prevUser: any) => ({
-                    ...prevUser,
-                    secrets: prevUser.secrets.map((s: any) =>
-                        s._id === _id ? { ...s, title, secret } : s
-                    ),
-                }));
+                fetchUserData();
                 toast.success("Segredo alterado com sucesso!");
                 return true;
             }
@@ -99,10 +90,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             );
 
             if (response.status === 200) {
-                setUser((prevUser: any) => ({
-                    ...prevUser,
-                    secrets: prevUser.secrets.filter((s: any) => s._id !== _id),
-                }));
+                fetchUserData();
                 toast.success("Segredo apagado com sucesso!");
                 return true;
             }
@@ -117,7 +105,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     }
 
     async function alterProfileData(_id: string, name: string, img: string): Promise<boolean> {
-        if (!name && !img) { toast.error("Dados inválidos"); return false  }
+        if (!name && !img) { toast.error("Dados inválidos"); return false }
 
         const data = {
             name: name || '',
@@ -136,12 +124,30 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         return false
     }
 
+    async function fetchUserData() {
+        try {
+            const header = getHeaderConfig();
+            const response = await axios.get(
+                `${API_BASE_URL}/user`,
+                header
+            );
+            if (response.status === 200) {
+                console.log(response.data);
+                setUser(response.data)
+            }
+        } catch (error: any) {
+            const message =
+                error.response?.data?.message || "Erro ao buscar informações do usuario";
+            toast.error(message);
+        }
+    }
+
     useEffect(() => {
         console.log(user);
     }, [user]);
 
     return (
-        <UserContext.Provider value={{ user, setUser, createSecret, alterSecret, deleteSecret, alterProfileData }}>
+        <UserContext.Provider value={{ user, setUser, createSecret, alterSecret, deleteSecret, alterProfileData, fetchUserData }}>
             {children}
         </UserContext.Provider>
     );

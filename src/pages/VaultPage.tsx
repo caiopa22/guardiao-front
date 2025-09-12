@@ -18,17 +18,59 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { useAuth } from "@/hooks/useAuth";
 import { useUser } from "@/hooks/useUser";
+import { toast } from "sonner";
 
 
 
 export function DialogDemo({ children }: { children: React.ReactNode }) {
   const videoRef = useRef<HTMLVideoElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
   const [open, setOpen] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [result, setResult] = useState<boolean>(false)
+  const [attempted, setAttempted] = useState(false)
 
-  const { isAuthenticated } = useAuth();
+  const { verifyFace, isAuthenticated } = useAuth()
+  const navigate = useNavigate()
 
-  const navigate = useNavigate();
+  const handleCapture = async () => {
+    if (!videoRef.current || !canvasRef.current) return
 
+    const video = videoRef.current
+    const canvas = canvasRef.current
+    const context = canvas.getContext("2d")
+
+    if (!context) return
+
+    canvas.width = video.videoWidth
+    canvas.height = video.videoHeight
+    context.drawImage(video, 0, 0, canvas.width, canvas.height)
+
+    const dataUrl = canvas.toDataURL("image/jpeg")
+    setLoading(true)
+    setResult(false)
+
+    try {
+      const verified = await verifyFace(dataUrl)
+      setResult(verified)
+
+      if (verified && isAuthenticated) {
+        navigate("/secrets")
+        toast.success("Usuário identificado!") 
+
+      } else {
+        toast.error("Usuário não identificado")
+      }
+    } catch (err) {
+      console.error(err)
+      setResult(false)
+      toast.error("Erro ao verificar o rosto")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Inicia/para a câmera
   useEffect(() => {
     let stream: MediaStream | null = null
 
@@ -46,9 +88,8 @@ export function DialogDemo({ children }: { children: React.ReactNode }) {
     if (open) {
       startWebcam()
     } else {
-      // se fechar, para a câmera
       if (stream) {
-        stream.getTrack().forEach((track) => track.stop())
+        stream.getTracks().forEach((track) => track.stop())
         stream = null
       }
       if (videoRef.current) {
@@ -63,12 +104,6 @@ export function DialogDemo({ children }: { children: React.ReactNode }) {
     }
   }, [open])
 
-  useEffect(() => {
-      if (isAuthenticated !== null && !isAuthenticated){
-        navigate("/")
-      }
-  }, [isAuthenticated])
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
@@ -76,7 +111,7 @@ export function DialogDemo({ children }: { children: React.ReactNode }) {
         <DialogHeader>
           <DialogTitle className="text-foreground">Verificação facial</DialogTitle>
           <DialogDescription>
-            Posicione seu rosto dentro do círculo e aguarde a verificação.
+            Posicione seu rosto dentro do círculo e clique no botão para verificar.
           </DialogDescription>
         </DialogHeader>
 
@@ -93,10 +128,23 @@ export function DialogDemo({ children }: { children: React.ReactNode }) {
           </div>
         </div>
 
-        <DialogFooter>
-          <Button
-            onClick={() => navigate("/secrets")}
-            className="w-full h-12 text-white">Tirar foto</Button>
+        {/* Canvas oculto só pra capturar o frame */}
+        <canvas ref={canvasRef} className="hidden" />
+
+        <DialogFooter >
+          <div className="flex flex-col gap-2 w-full">
+            <Button
+              onClick={handleCapture}
+              disabled={loading}
+              className="w-full h-12 text-white"
+            >
+              {loading ? "Verificando..." : "Tirar foto"}
+            </Button>
+
+            {/* {result && <p className="text-center text-sm">{
+              result ? "Autenticado"
+            }</p>} */}
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

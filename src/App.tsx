@@ -6,6 +6,7 @@ import SecretsPage from './pages/SecretsPage';
 import LandingPage from './pages/LandingPage';
 import { Toaster } from 'sonner';
 import { useTheme } from './hooks/useTheme';
+import Sandbox from './pages/Sandbox';
 
 // Componente principal que define as rotas
 export default function App() {
@@ -14,12 +15,16 @@ export default function App() {
 
   return (
     <div className={`${theme}`}>
-      <Toaster className={`${theme}`}/>
+      <Toaster className={`${theme}`} />
       <BrowserRouter>
         <Routes>
           <Route
             path="/"
             element={<LandingPage />}
+          />
+          <Route
+            path="/sandbox"
+            element={<Sandbox />}
           />
           <Route
             path="/secrets"
