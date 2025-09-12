@@ -1,16 +1,18 @@
 import React, { createContext, useEffect, useState, type ReactNode } from "react";
 import axios from "axios";
 import { toast } from "sonner";
-import type { User } from "@/types/user";
+import type { DashboardUser, User } from "@/types/user";
 
 interface UserContextType {
     user: User | undefined;
+    dashboardUsers: DashboardUser[];
     setUser: React.Dispatch<React.SetStateAction<User | undefined>>;
     createSecret: (title: string, secret: string) => Promise<boolean>;
     alterSecret: (_id: string, title: string, secret: string) => Promise<boolean>;
     deleteSecret: (_id: string) => Promise<boolean>;
     alterProfileData: (id: string, name: string, img: string) => Promise<boolean>;
     fetchUserData: () => void;
+    fetchDashboardUsers: () => void;
 }
 
 export const UserContext = createContext<UserContextType | undefined>(
@@ -31,6 +33,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const [user, setUser] = useState<User | undefined>(undefined);
+    const [dashboardUsers, setDashboardUsers] = useState<DashboardUser[]>([]);
 
     async function createSecret(title: string, secret: string): Promise<boolean> {
         try {
@@ -119,7 +122,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             toast.success("Dados atualizados com sucesso")
             return true
         }
-        console.log(response)
         toast.error("Ocorreu um erro ao editar o perfil.")
         return false
     }
@@ -132,7 +134,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
                 header
             );
             if (response.status === 200) {
-                console.log(response.data);
                 setUser(response.data)
             }
         } catch (error: any) {
@@ -142,12 +143,34 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         }
     }
 
+    async function fetchDashboardUsers() {
+        if (user && user.role !== "admin") return;
+        try {
+            const header = getHeaderConfig();
+            const response = await axios.get(
+                `${API_BASE_URL}/user/findAll`,
+                header
+            );
+            if (response.status === 200) {
+                setDashboardUsers(response.data)
+            }
+        } catch (error: any) {
+            const message =
+                error.response?.data?.message || "Erro ao buscar informações do dashboard";
+            toast.error(message);
+        }
+    }
+
     useEffect(() => {
-        console.log(user);
-    }, [user]);
+        console.log(dashboardUsers);
+        
+    }, [dashboardUsers]);
 
     return (
-        <UserContext.Provider value={{ user, setUser, createSecret, alterSecret, deleteSecret, alterProfileData, fetchUserData }}>
+        <UserContext.Provider value={{
+            user, setUser, createSecret, alterSecret, deleteSecret,
+            alterProfileData, fetchUserData, fetchDashboardUsers, dashboardUsers
+        }}>
             {children}
         </UserContext.Provider>
     );

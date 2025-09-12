@@ -7,6 +7,8 @@ import LandingPage from './pages/LandingPage';
 import { Toaster } from 'sonner';
 import { useTheme } from './hooks/useTheme';
 import Sandbox from './pages/Sandbox';
+import PrivateRoute from './pages/PrivateRoute';
+import Dashboard from './pages/Dashboard';
 
 // Componente principal que define as rotas
 export default function App() {
@@ -28,11 +30,27 @@ export default function App() {
           />
           <Route
             path="/secrets"
-            element={<SecretsPage />}
+            element={
+              <PrivateRoute>
+                <SecretsPage />
+              </PrivateRoute>
+            }
           />
           <Route
             path="/vault"
-            element={<VaultPage />}
+            element={
+              <PrivateRoute>
+                <VaultPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={
+              <PrivateRoute>
+                <Dashboard />
+              </PrivateRoute>
+            }
           />
           <Route
             path="/access"

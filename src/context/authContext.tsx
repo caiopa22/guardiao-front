@@ -7,6 +7,7 @@ import type { RegisterData } from "@/types/auth";
 
 interface AuthContextType {
     API_BASE_URL: string;
+    loadingAuth: boolean;
     isAuthenticated: boolean | null;
     setIsAuthenticated: (value: boolean) => void;
     login: (email: string, password: string) => Promise<void>;
@@ -22,6 +23,8 @@ export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const API_BASE_URL = "http://localhost:8000";
+    const [loadingAuth, setloadingAuth] = useState<boolean>(true);
+    const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
     const getHeaderConfig = () => {
         const token = localStorage.getItem("access");
@@ -34,9 +37,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const { setUser, fetchUserData } = useUser();
 
-
-
-    const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
     async function register(data: RegisterData): Promise<boolean> {
         if (!data) { toast.error("Preencha os campos obrigatórios"); return false }
@@ -77,24 +77,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setIsAuthenticated(false);
     }
 
-    async function verifyFace(img: string): Promise<boolean>{
+    async function verifyFace(img: string): Promise<boolean> {
         const config = getHeaderConfig();
-        const response = await axios.post(`${API_BASE_URL}/auth/verify`, {unknownB64: img}, config);
+        const response = await axios.post(`${API_BASE_URL}/auth/verify`, { unknownB64: img }, config);
         return response.data
     }
 
     useEffect(() => {
         const refreshAccessToken = async () => {
+            setloadingAuth(true)
             try {
                 const response = await axios.put(`${API_BASE_URL}/auth/refresh_token/${token}`);
                 const data = response.data;
-                console.log(response)
                 localStorage.setItem("access", data.token);
                 setUser(data.user)
                 setIsAuthenticated(true);
             } catch (error) {
                 setIsAuthenticated(false);
                 console.error("Erro ao renovar token:", error);
+            } finally {
+                setloadingAuth(false)
             }
         };
 
@@ -103,11 +105,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }, []);
 
 
+    useEffect(() => {
+        console.log(isAuthenticated);
+    }, [isAuthenticated]);
+
     return (
-        <AuthContext.Provider value={{ isAuthenticated, setIsAuthenticated, login, register, logout,
-         API_BASE_URL, getHeaderConfig,
-        verifyFace
-         }}>
+        <AuthContext.Provider value={{
+            isAuthenticated, setIsAuthenticated, login, register, logout,
+            API_BASE_URL, getHeaderConfig, loadingAuth, verifyFace
+        }}>
             {children}
         </AuthContext.Provider>
     )

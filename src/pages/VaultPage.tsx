@@ -19,16 +19,16 @@ import { useNavigate } from "react-router";
 import { useAuth } from "@/hooks/useAuth";
 import { useUser } from "@/hooks/useUser";
 import { toast } from "sonner";
+import { useTheme } from "next-themes";
 
 
 
-export function DialogDemo({ children }: { children: React.ReactNode }) {
+export function FaceAuthenticationDialog({ children }: { children: React.ReactNode }) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [result, setResult] = useState<boolean>(false)
-  const [attempted, setAttempted] = useState(false)
+  const { theme } = useTheme();
 
   const { verifyFace, isAuthenticated } = useAuth()
   const navigate = useNavigate()
@@ -48,22 +48,20 @@ export function DialogDemo({ children }: { children: React.ReactNode }) {
 
     const dataUrl = canvas.toDataURL("image/jpeg")
     setLoading(true)
-    setResult(false)
 
     try {
       const verified = await verifyFace(dataUrl)
-      setResult(verified)
-
       if (verified && isAuthenticated) {
-        navigate("/secrets")
-        toast.success("Usuário identificado!") 
+        if (verified && isAuthenticated) {
+          navigate("/secrets", { state: { fromFaceAuth: true } });
+          toast.success("Usuário identificado!");
+        }
 
       } else {
         toast.error("Usuário não identificado")
       }
     } catch (err) {
       console.error(err)
-      setResult(false)
       toast.error("Erro ao verificar o rosto")
     } finally {
       setLoading(false)
@@ -107,7 +105,7 @@ export function DialogDemo({ children }: { children: React.ReactNode }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className={`sm:max-w-[600px] ${theme}`}>
         <DialogHeader>
           <DialogTitle className="text-foreground">Verificação facial</DialogTitle>
           <DialogDescription>
@@ -140,10 +138,6 @@ export function DialogDemo({ children }: { children: React.ReactNode }) {
             >
               {loading ? "Verificando..." : "Tirar foto"}
             </Button>
-
-            {/* {result && <p className="text-center text-sm">{
-              result ? "Autenticado"
-            }</p>} */}
           </div>
         </DialogFooter>
       </DialogContent>
@@ -154,12 +148,22 @@ export function DialogDemo({ children }: { children: React.ReactNode }) {
 export default function VaultPage() {
 
   const { user } = useUser();
+  const { theme } = useTheme();
+  const navigate = useNavigate();
+  const { isAuthenticated, loadingAuth } = useAuth()
+
+  useEffect(() => {
+    if (loadingAuth) return;
+    if (isAuthenticated === false) {
+      navigate("/");
+    }
+  }, [isAuthenticated, loadingAuth]);
 
   return (
-    <div className="flex flex-col min-h-screen items-start  bg-secondary">
+    <div className={`${theme} flex flex-col min-h-screen items-start bg-secondary`}>
       <Header />
       <section className="px-48 py-6 flex flex-col gap-12 w-full h-full">
-        <div className="flex mt-12 justify-between items-center w-full">
+        <div className="flex mt-8 justify-between items-center w-full">
           <div>
             <h1 className="text-2xl font-semibold  text-foreground">Olá, {user?.name}!</h1>
             <h1 className="text-xl  text-muted-foreground">Seja bem vindo ao seu cofre seguro.</h1>
@@ -174,11 +178,11 @@ export default function VaultPage() {
               <p className="font-md w-1/3 text-center">
                 Guarde suas informações de maneira segura dentro do seu cofre utilizando reconhecimento facial.</p>
             </div>
-            <DialogDemo>
+            <FaceAuthenticationDialog>
               <Button className="h-12 text-lg mt-4 text-white">
                 Acessar meu cofre
               </Button>
-            </DialogDemo>
+            </FaceAuthenticationDialog>
 
           </Card>
           <div>

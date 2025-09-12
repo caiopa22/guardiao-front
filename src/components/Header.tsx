@@ -127,6 +127,7 @@ const EditProfileDialog = ({ children }: { children: React.ReactNode }) => {
                         <Label className="ml-2 text-foreground">Nome</Label>
                         <Input
                             id="name"
+                            className="text-foreground"
                             placeholder="Nome de usuário"
                             value={values.name}
                             onChange={(e) => setValues({ ...values, name: e.target.value })}
@@ -195,7 +196,9 @@ export default function Header() {
 
                 <Separator orientation="vertical" />
 
-                <Button size="icon" variant="ghost">
+                <Button size="icon" variant="ghost"
+                    onClick={() => navigate("/dashboard")}
+                >
                     <ServerCog className="size-5 text-foreground" />
                 </Button>
 

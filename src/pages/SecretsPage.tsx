@@ -29,6 +29,9 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { useTheme } from "@/hooks/useTheme";
 import { useUser } from "@/hooks/useUser";
+import { useLocation, useNavigate } from "react-router";
+import { toast } from "sonner";
+import { loadingSpinner } from "./PrivateRoute";
 
 
 export function OpenSecretDialog({ children, secret, title, id }: { children: React.ReactNode; secret: string, title: string, id: string }) {
@@ -191,8 +194,6 @@ export function ConfirmDeleteSecret({ children, title, id }: { children: React.R
 
 export default function SecretsPage() {
 
-    const { user } = useUser();
-
     const secretCard = (title: string) => {
         return (
             <Card className="cursor-pointer hover:bg-accent transition w-full">
@@ -205,6 +206,25 @@ export default function SecretsPage() {
             </Card>
         )
     }
+
+    const { user } = useUser();
+    const navigate = useNavigate();
+    const location = useLocation();
+    const state = location.state as { fromFaceAuth?: boolean } | undefined;
+    const [loadingState, setLoadingState] = useState<boolean>(true)
+
+    useEffect(() => {
+        if (!state?.fromFaceAuth) {
+            window.history.back();
+        } else {
+            setLoadingState(false);
+        }
+    }, [state, navigate]);
+
+    if (loadingState) {
+        return loadingSpinner();
+    }
+
 
     return (
         <div className="w-screen bg-secondary min-h-screen">

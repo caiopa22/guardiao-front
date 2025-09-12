@@ -12,3 +12,11 @@ export interface User {
   role: string;
   secrets: Secret[];
 }
+
+export interface DashboardUser {
+  name: string;
+  email: string;
+  img: string;
+  role: string;
+  count_secrets: number;
+}
