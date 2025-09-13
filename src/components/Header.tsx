@@ -196,11 +196,14 @@ export default function Header() {
 
                 <Separator orientation="vertical" />
 
-                <Button size="icon" variant="ghost"
-                    onClick={() => navigate("/dashboard")}
-                >
-                    <ServerCog className="size-5 text-foreground" />
-                </Button>
+
+                {(user?.role === "admin" || user?.role === "owner") && (
+                    <Button size="icon" variant="ghost"
+                        onClick={() => navigate("/dashboard")}
+                    >
+                        <ServerCog className="size-5 text-foreground" />
+                    </Button>
+                )}
 
                 <Button
                     onClick={() => toggleTheme()}

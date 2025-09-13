@@ -144,7 +144,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     }
 
     async function fetchDashboardUsers() {
-        if (user && user.role !== "admin") return;
+        if (user && (user.role !== "admin" && user.role !== "owner")) return;
         try {
             const header = getHeaderConfig();
             const response = await axios.get(

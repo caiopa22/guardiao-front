@@ -16,7 +16,7 @@ export default function App() {
   const { theme } = useTheme();
 
   return (
-    <div className={`${theme}`}>
+    <div className={`${theme} overflow-x-hidden`}>
       <Toaster className={`${theme}`} />
       <BrowserRouter>
         <Routes>
