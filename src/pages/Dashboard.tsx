@@ -158,7 +158,7 @@ export default function Dashboard() {
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHegad>Avatar</TableHead>
+                                    <TableHead>Avatar</TableHead>
                                     <TableHead>Nome</TableHead>
                                     <TableHead>Email</TableHead>
                                     <TableHead>Role</TableHead>
